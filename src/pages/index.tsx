@@ -1,150 +1,140 @@
-import "dotenv/config";
-
+import { Fragment, FC, useEffect } from "react";
+import type { InferGetServerSidePropsType, GetServerSidePropsContext } from "next";
 import Head from "next/head";
-import type { InferGetServerSidePropsType } from "next";
-import type { YouTubeMetadataBeforeDOM, ServerSidePropsWithV } from "../helpers/typings";
-import { useEffect, type FC } from "react";
-import ms from "ms";
-import ytdl from "ytdl-core";
-import { dynamicSearchForYouTubeID } from "@/helpers/utility";
+import { truncateString } from "@/helpers/utility";
+import isURL from "validator/lib/isURL";
+import { defaultEmbed } from "./api/oembed";
 
-const cachedURL = new Map<string, YouTubeMetadataBeforeDOM>();
-const cacheTime = ms("6h");
+// if they visit the URL directly, redirect them to my GitHub page instead :)
+const redirectURL = defaultEmbed.provider_url;
 
-const WatchPage: FC<InferGetServerSidePropsType<typeof getServerSideProps>> = (props) => {
-  const fallbackURLToCircleOfHell = props?.url || "https://github.com/ray-1337";
+type PartializedDiscordContnetParameters = Partial<Record<"host" | "title" | "description" | "imageURL" | "videoURL" | "embedColor" | "authorText", string>>;
 
+const isURLTrulyValid = (url: string) => isURL(url, {
+  protocols: ["https"]
+});
+
+const Page: FC<InferGetServerSidePropsType<typeof getServerSideProps>> = (props) => {
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      window.open(fallbackURLToCircleOfHell, "_self");
-    };
-  }, []);
-
-  if (props?.width && props?.height) {
-    if (props?.width > 1920 || props?.height > 1920) {
-      props.width = props.width * 0.5;
-      props.width = props.height * 0.5;
-    } else if (props.width < 400 && props.height < 400) {
-      props.width = props.width * 2;
-      props.width = props.height * 2;
-    };
-  };
-
-  // discord
-  const title = props?.author_name;
-  const description = props?.title;
-  const authorText = "YouTube / 13373333.one"
-  const image = props?.thumbnail_url || "";
+    console.log(props);
+  }, [])
 
   return (
     <Head>
-      <meta httpEquiv={"refresh"} content={`0; url=${fallbackURLToCircleOfHell}`} />
+      {/* <meta httpEquiv={"refresh"} content={`0; url=${redirectURL}`} /> */}
 
-      { (typeof props === "object" && props?.video_url?.length) && (
-        <>
-          <link rel="canonical" href={fallbackURLToCircleOfHell}/>
+      <link rel="canonical" href={redirectURL} />
 
-          <meta name="theme-color" content="#ff0000" />
+      {/* embed color */}
+      {
+        props?.embedColor?.length && (
+          // goofy ahh function
+          (() => {
+            const isHexWithHashtag = /^#[0-9A-Fa-f]{6}$/gi;
+            if (!props.embedColor.match(isHexWithHashtag)) return;
 
-          <meta property="description" content={description}/>
-          <meta property="og:title" content={title}/>
-          <meta property="og:type" content="website"/>
-          <meta property="og:url" content={fallbackURLToCircleOfHell}/>
-          <meta property="og:image" content={image} />
-          <meta property="og:description" content={description}/>
-          <meta property="og:site_name" content={authorText} />
-          
-          <meta property="og:video" content={props?.video_url} />
-          <meta property="og:video:secure_url" content={props?.video_url} />
-          <meta property="og:video:type" content={"video/mp4"} />
-          <meta property="og:video:width" content={String(props?.width)} />
-          <meta property="og:video:height" content={String(props?.height)} />
+            return <meta name="theme-color" content={props.embedColor} />
+          })()
+        )
+      }
 
-          <meta name="twitter:domain" content={"13373333.one"}/>
-          <meta name="twitter:url" content={fallbackURLToCircleOfHell}/>
-          <meta name="twitter:description" content={title}/>
-          <meta name="twitter:card" content="player" />
-          <meta name="twitter:title" content={description} />
-          <meta name="twitter:image" content={"0"} />
+      {/* title */}
+      {
+        props?.title && (
+          <Fragment>
+            <meta property="og:title" content={truncateString(props.title, 256)} />
+            <meta name="twitter:title" content={truncateString(props.title, 256)} />
+          </Fragment>
+        )
+      }
 
-          <meta name="twitter:player" content={fallbackURLToCircleOfHell} />
-          <meta name="twitter:player:width" content={String(props?.width)} />
-          <meta name="twitter:player:height" content={String(props?.height)} />
-          <meta name="twitter:player:stream" content={props?.video_url} />
-          <meta name="twitter:player:stream:content_type" content={"video/mp4"} />
+      {/* description */}
+      {
+        props?.description && (
+          <Fragment>
+            <meta property="description" content={truncateString(props.description, 1024)} />
+            <meta property="og:description" content={truncateString(props.description, 1024)} />
+            <meta name="twitter:description" content={truncateString(props.description, 1024)} />
+          </Fragment>
+        )
+      }
 
-          <link rel="alternate" href={`https://${props?.host}/api/oembed?text=${props?.title}&url=${fallbackURLToCircleOfHell}`} type="application/json+oembed" title={authorText}/>
-        </>
-      ) }
+      {/* video url */}
+      {
+        props?.videoURL && (
+          <Fragment>
+            <meta property="og:video" content={props.videoURL} />
+            <meta property="og:video:secure_url" content={props.videoURL} />
+
+            <meta name="twitter:card" content="player" />
+            <meta name="twitter:player:stream" content={props.videoURL} />
+            <meta name="twitter:player" content={props.videoURL} />
+
+            <meta property="og:video:type" content={"video/mp4"} />
+            <meta name="twitter:player:stream:content_type" content={"video/mp4"} />
+            <meta name="twitter:image" content={"0"} />
+
+            {/* coming soon: overriding the height and width of the embed */}
+            {/* <meta property="og:video:width" content={String(props?.width)} /> */}
+            {/* <meta property="og:video:height" content={String(props?.height)} /> */}
+            {/* <meta name="twitter:player:width" content={String(props?.width)} /> */}
+            {/* <meta name="twitter:player:height" content={String(props?.height)} /> */}
+          </Fragment>
+        )
+      }
+
+      {/* image url */}
+      {
+        props?.imageURL && (
+          <Fragment>
+            <meta property="og:image" content={props.imageURL} />
+            <meta name="twitter:image" content={"0"} />
+          </Fragment>
+        )
+      }
+
+      {/* author text */}
+      {
+        props?.authorText && (
+          <meta property="og:site_name" content={props.authorText} />
+        )
+      }
+
+      <meta property="og:type" content="website" />
+      <meta property="og:url" content={redirectURL} />
+
+      <meta name="twitter:domain" content={"13373333.one"} />
+      <meta name="twitter:url" content={redirectURL} />
+
+      <link rel="alternate" href={`https://${props?.host}/api/oembed?text=${props?.description}&url=${redirectURL}`} type="application/json+oembed" title={props?.description || props.authorText || undefined}/>
     </Head>
   );
 };
 
-export async function getServerSideProps(ctx: ServerSidePropsWithV) {
-  try {
-    const youtubeID = dynamicSearchForYouTubeID(ctx); // ctx?.query?.v as string | undefined;
-    if (!youtubeID?.length || !ytdl.validateID(youtubeID)) return { props: {} };
+export async function getServerSideProps(ctx: GetServerSidePropsContext<PartializedDiscordContnetParameters>) {
+  const embedColor = (): string | null => {
+    if (!ctx?.query?.embedColor) return null;
 
-    if (cachedURL.has(youtubeID)) {
-      const cachedURLAfterHas = cachedURL?.get(youtubeID);
-      if (!cachedURLAfterHas) return { props: {} };
+    const embedColor = String(ctx.query.embedColor);
+    if (!embedColor?.length) return null;
 
-      return { props: { ...cachedURLAfterHas } };
-    };
+    const isHexWithHashtag = /^#[0-9A-Fa-f]{6}$/gi;
+    if (!embedColor.match(isHexWithHashtag)) return null;
 
-    const rawYouTubeURL = "https://youtu.be/" + youtubeID;
-
-    // below this code pictures how stupid i am
-    const ytVideoInfo = await ytdl.getInfo(rawYouTubeURL, { 
-      requestOptions: {
-        headers: {
-          cookie: process.env.COOKIE_BYPASS
-        }
-      }
-    });
-
-    if (!ytVideoInfo) return { props: {} };
-    
-    const liteFilteredFormats = ytVideoInfo.formats
-    .filter(format => format.hasAudio && format.hasVideo && !format.isLive && !format.isHLS);
-
-    const filteredFormats = liteFilteredFormats.filter(format => format.quality === "medium" || format.quality === "hd720");
-
-    let highestFormat = filteredFormats.find(format => format.quality === "hd720");
-    if (!highestFormat) {
-      const lowest = filteredFormats.find(format => format.quality === "medium");
-      if (!lowest) {
-        return { props: {} };
-      };
-
-      highestFormat = lowest;
-    };
-
-
-    const firstRawVideoURL = highestFormat;
-    if (!firstRawVideoURL?.url?.length || !firstRawVideoURL?.mimeType?.length) return { props: {} };
-
-    const content: YouTubeMetadataBeforeDOM = {
-      author_name: `${ytVideoInfo?.videoDetails?.author?.name} (${ytVideoInfo?.videoDetails?.author?.user})`,
-      author_url: ytVideoInfo?.videoDetails?.author?.channel_url,
-      thumbnail_url: ytVideoInfo?.videoDetails?.thumbnails?.pop()?.url,
-      title: ytVideoInfo?.videoDetails?.title,
-      video_url: firstRawVideoURL.url,
-      url: `https://youtu.be/${youtubeID}`,
-      height: firstRawVideoURL.height,
-      width: firstRawVideoURL.width,
-      host: ctx?.req?.headers?.host
-    };
-
-    cachedURL.set(youtubeID, content);
-
-    setTimeout(() => cachedURL.delete(youtubeID), cacheTime);
-
-    return { props: { ...content } };
-  } catch (error) {
-    console.error(error);
-    return { props: {} };
+    return embedColor;
   };
+
+  return {
+    props: {
+      title: ctx?.query?.title ? truncateString(ctx.query.title as string, 256) : null,
+      description: ctx?.query?.description ? truncateString(ctx.query.description as string, 1024) : null,
+      imageURL: ctx?.query?.imageURL && isURLTrulyValid(ctx.query.imageURL as string) ? ctx.query.imageURL as string : null,
+      videoURL: ctx?.query?.videoURL && isURLTrulyValid(ctx.query.videoURL as string) ? ctx.query.videoURL as string : null,
+      embedColor: embedColor(),
+      authorText: ctx?.query?.authorText ? truncateString(ctx.query.authorText as string, 256) : null,
+      host: ctx?.req?.headers?.host
+    }
+  }
 };
 
-export default WatchPage;
+export default Page;
