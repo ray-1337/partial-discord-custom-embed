@@ -8,7 +8,7 @@ import { defaultEmbed } from "./api/oembed";
 // if they visit the URL directly, redirect them to my GitHub page instead :)
 const redirectURL = defaultEmbed.provider_url;
 
-type PartializedDiscordContnetParameters = Partial<Record<"host" | "title" | "description" | "imageURL" | "videoURL" | "embedColor" | "authorText", string>>;
+type PartializedDiscordContentParameters = Partial<Record<"host" | "title" | "description" | "imageURL" | "videoURL" | "embedColor" | "authorText", string>>;
 
 const isURLTrulyValid = (url: string) => isURL(url, {
   protocols: ["https"]
@@ -111,7 +111,7 @@ const Page: FC<InferGetServerSidePropsType<typeof getServerSideProps>> = (props)
   );
 };
 
-export async function getServerSideProps(ctx: GetServerSidePropsContext<PartializedDiscordContnetParameters>) {
+export async function getServerSideProps(ctx: GetServerSidePropsContext<PartializedDiscordContentParameters>) {
   const embedColor = (): string | null => {
     if (!ctx?.query?.embedColor) return null;
 
