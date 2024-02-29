@@ -1,5 +1,6 @@
 {
   "name": "youtube-embed",
+  "packageManager": "pnpm@8.15.4",
   "private": true,
   "scripts": {
     "dev": "next dev",
