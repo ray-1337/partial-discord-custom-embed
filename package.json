@@ -1,5 +1,5 @@
 {
-  "name": "youtube-embed",
+  "name": "partial-discord-custom-embed",
   "packageManager": "pnpm@8.15.4",
   "private": true,
   "scripts": {
