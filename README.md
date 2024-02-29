@@ -1,25 +1,21 @@
-# youtube-discord-embed
-Embed YouTube video on Discord, inspired by [FixTweet](https://fixupx.com), powered by [Next.js](https://nextjs.org)/[Vercel](https://vercel.app).
-
-## Disclaimer
-Due to recent YouTube preventing adblockers move, these can break at anytime without notice.
+# partial-discord-custom-embed
+Create a custom Discord embed through a layered URL parameters. This is a fork of my [YouTube Discord Embed](https://github.com/ray-1337/youtube-discord-embed).
 
 ## Motivation
-I just hate the current YouTube embed, where in mobile, you'll be redirected outside Discord/to YouTube app just to play a video, which is not a really pleasant experience.
+There is currently no support on applying a video in embed through a bot client. So, using a third party like this helps that.
 
-## What does this do?
-Basically pulling off YouTube video, and make it playable through embeds with OpenGraph/Twitter meta tags.
-
-This concept is pretty much the same with [FixTweet](https://fixupx.com) or similar.
+## Disclaimer
+This has limited features, such as you cannot apply a footer text, thumbnail, etc.
 
 ## Nice, can I use this?
 Absolutely, you can fork the repo, host it somewhere else, and change the domain.
-> YouTube Shorts URL coming soon. :>
 
-- https://www.youtube.com/watch?v=dQw4w9WgXcQ (with `/watch` route)
-  - https://yt.cdn.13373333.one/watch?v=dQw4w9WgXcQ, or https://yourdomain.com/watch?v=dQw4w9WgXcQ
-- https://youtu.be/dQw4w9WgXcQ (with `youtu.be` / official YouTube URL shortener)
-  - https://yt.cdn.13373333.one/dQw4w9WgXcQ, or https://yourdomain.com/dQw4w9WgXcQ
+## API
+Currently, only supports `title`, `description`, `imageURL`, `videoURL`, `embedColor`, and `authorText`.
+
+The usage is quite simple, just append the parameters to the URL with keys provided above.
+
+> https://ce.cdn.13373333.one/?title=uwu&description=owo
 
 ## License
 [MIT](LICENSE)
