@@ -5,6 +5,8 @@ import { truncateString } from "@/helpers/utility";
 import isURL from "validator/lib/isURL";
 import { defaultEmbed } from "./api/oembed";
 
+export const runtime = "experimental-edge";
+
 // if they visit the URL directly, redirect them to my GitHub page instead :)
 const redirectURL = defaultEmbed.provider_url;
 

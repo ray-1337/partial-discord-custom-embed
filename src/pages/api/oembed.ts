@@ -12,6 +12,8 @@ export const defaultEmbed = {
 
 const safelySlice = (str: string) => str.slice(0, 256);
 
+export const runtime = "experimental-edge";
+
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
   let forwardedEmbed = defaultEmbed;
 
